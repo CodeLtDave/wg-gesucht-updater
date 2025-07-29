@@ -9,22 +9,49 @@ from bs4 import BeautifulSoup
 
 
 class WGGesuchtSession(requests.Session):
+    def __init__(self):
+        super().__init__()
+        self.headers.update({
+            "User-Agent": (
+                "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:141.0) "
+                "Gecko/20100101 Firefox/141.0"
+            ),
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+            "X-Client-Id": "wg_desktop_website",
+            "X-Smp-Client": "WG-Gesucht",
+            "Origin": "https://www.wg-gesucht.de",
+            "Referer": "https://www.wg-gesucht.de/"
+        })
 
-    def login(self, user, password):
-        """ Log in to wg-gesucht.de. Return a new session. """
-        url = "https://www.wg-gesucht.de/ajax/api/Smp/api.php?action=login"
-        data = {"login_email_username": user,
+    def login(self, email: str, password: str) -> bool:
+            self.get("https://www.wg-gesucht.de/")  # Init session cookies
+            url = "https://www.wg-gesucht.de/ajax/sessions.php?action=login"
+
+            payload = {
+                "login_email_username": email,
                 "login_password": password,
-                "login_form_autologin": "1",
-                "display_language": "de"}
-        self.get("https://www.wg-gesucht.de")
-        self.post(url, json=data)
-        response = self.get("https://www.wg-gesucht.de/meine-anzeigen.html")
-        soup = BeautifulSoup(response.text)
-        nodes = soup.select("input")
-        self.csrf_token = nodes[0]["value"]
-        nodes = soup.select("a.logout_button")
-        self.user_id = nodes[0]["data-user_id"]
+                "login_form_auto_login": "1",
+                "display_language": "de"
+            }
+
+            response = self.post(url, json=payload)
+            if response.status_code != 200:
+                raise RuntimeError(f"Login fehlgeschlagen mit Statuscode {response.status_code}")
+
+            try:
+                data = response.json()
+            except ValueError:
+                raise RuntimeError("Antwort ist kein JSON!")
+
+            if "access_token" in data and "user_id" in data:
+                self.access_token = data["access_token"]
+                self.user_id = data["user_id"]
+                self.csrf_token = data.get("csrf_token")
+                return True
+            else:
+                raise RuntimeError("Login nicht erfolgreich – access_token fehlt.")
 
     def toggle_activation(self, ad_id):
         """ Deactivate and immediately re-activate the offer. """
@@ -37,6 +64,7 @@ class WGGesuchtSession(requests.Session):
         r = self.patch(api_url, json=data, headers=headers)
         data["deactivated"] = "0"
         r = self.patch(api_url, json=data, headers=headers)
+        print(f"Refreshed ad with nummer {ad_id}")
 
 
 if __name__ == "__main__":
