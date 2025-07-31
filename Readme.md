@@ -15,7 +15,7 @@ Schiebt deine Anzeigen nach oben, indem sie **kurz deaktiviert und sofort reakti
 
 ## Installation
 ```bash
-git clone <DEIN_REPO_URL>
+git clone https://github.com/CodeLtDave/wg-gesucht-updater.git
 cd wg-gesucht-updater
 
 # (optional) venv
@@ -83,7 +83,7 @@ Bumps your ads by **briefly deactivating and immediately reactivating** them on 
 
 ## Setup
 ```bash
-git clone <YOUR_REPO_URL>
+git clone https://github.com/CodeLtDave/wg-gesucht-updater.git
 cd wg-gesucht-updater
 
 # (optional) venv
