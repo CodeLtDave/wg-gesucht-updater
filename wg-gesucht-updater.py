@@ -98,9 +98,19 @@ if __name__ == "__main__":
     else:
         password = getpass.getpass("password: ")
 
-    while True:
-        session = WGGesuchtSession()
-        session.login(username, password)
-        for ad_id in args.ad_id:
-            session.toggle_activation(ad_id)
-        time.sleep(args.interval)
+    try:
+        while True:
+            session = WGGesuchtSession()
+            session.login(username, password)
+            for ad_id in args.ad_id:
+                session.toggle_activation(ad_id)
+            time.sleep(args.interval)
+
+    except Exception as e:
+        import traceback
+        print("Fehler im Hauptloop:", e)
+        traceback.print_exc()
+        exit(1)
+
+    print("Skript wurde beendet – das sollte nie passieren!")
+    exit(1)
